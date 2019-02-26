@@ -1,5 +1,4 @@
-from client import connect
-from server import serve
+import socket
 
 class datalink_setup():
     def __enter__(self):
@@ -26,22 +25,23 @@ class Datalink():
 
 
     def _id_register(self, id_):
+        # add an entry for new ids
         self.packets[id_] = {}
         self.packets[id_]['payload'] = [0]
     
 
-    def refresh_client(self):
+    def refresh(self):
         """ send recieve new data changes """
-        self.sock.send(self.process_send().encode())
-        self.process_recieve(self.sock.recv(1024))
-
+        if self.mode = "client":
+            self.sock.send(self.process_send().encode())
+            self.process_recieve(self.sock.recv(1024))
+        else:
+            self.process_recieve(self.sock.recv(1024))
+            self.sock.send(self.process_send().encode())
+        
+        # empty queue
         self._queue = []
 
-    def refresh_server(self):
-        self.process_recieve(self.sock.recv(1024))
-        self.sock.send(self.process_send().encode())
-
-        self._queue = []
 
     def process_recieve(self, recieved):
         for payload in string_to_list(recieved.decode()):
@@ -99,3 +99,26 @@ def string_to_list(the_string):
         for item in secondary[1].split(',')[:-1]:
             l[secondary[0]].append(int(item))
     return l
+
+
+# socket connection functions 
+
+def connect():
+    sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM ) #socket.SOCK_DGRAM
+    sock.connect(('192.168.4.1',5000))
+    sock.send(b'initialise')
+    return sock
+
+def serve():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    sock.bind(('0.0.0.0',5000))
+    sock.listen()
+
+    client, addr = sock.accept()
+    print(addr, " connected!")
+    # initialised messaged
+    print(addr, client.recv(1024))
+    
+    return client

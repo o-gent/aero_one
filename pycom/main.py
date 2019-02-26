@@ -9,14 +9,19 @@ from ppm import Rppm, Wppm
 
 
 def main_loop(link):
+    # executes while link to ground station is active - breaks upon lost connection
+    
     while True:
         roll, pitch= roll_pitch()
         link.put(1, [int(roll), int(pitch)])
-        link.refresh_server()
+        link.refresh()
         time.sleep(0.005)
 
 
 def backup_loop():
+    # to be executed when telemetry to ground station has been lost
+    # all ground station only accessible functions to be set to defaults
+    
     pycom.rgbled(0x7f0000) # red
     print("connection lost - moved to fallback loop")
 

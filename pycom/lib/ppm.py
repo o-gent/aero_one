@@ -38,15 +38,6 @@ class Rppm():
         self.channel += 1
 
 
-class Wppm():
-    """
-    Write a PPM signal to a wire
-    """
-    def __init__(self):
-        pass
-
-
-
 if __name__ == "__main__":
     # requires a signal (CPPM from a radio) on P10.
     micropython.alloc_emergency_exception_buf(100)
