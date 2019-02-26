@@ -1,3 +1,7 @@
+"""
+Any direct maniupulation of sensor information to produce another measurement should be here
+"""
+
 import math
 
 from pysense import Pysense

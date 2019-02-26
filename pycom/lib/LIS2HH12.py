@@ -1,3 +1,7 @@
+"""
+PYCOM LIB - ATTITUDE 
+"""
+
 import math
 import time
 import struct

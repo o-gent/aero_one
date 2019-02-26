@@ -5,7 +5,7 @@ import time
 
 from sensor_read import roll_pitch, pressure
 from datalink import datalink_setup
-from ppm import Rppm, Wppm 
+from ppm import Wppm 
 
 
 def main_loop(link):

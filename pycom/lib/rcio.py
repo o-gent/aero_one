@@ -1,3 +1,7 @@
+""" 
+Any RC communication with servos & receiver. 
+"""
+
 import machine
 import micropython
 

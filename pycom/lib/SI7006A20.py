@@ -1,3 +1,7 @@
+"""
+PYCOM LIB - TEMPERATURE
+"""
+
 import time
 from machine import I2C
 import math

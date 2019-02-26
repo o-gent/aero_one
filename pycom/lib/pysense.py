@@ -1,3 +1,7 @@
+"""
+Required for reading from sensor board
+"""
+
 from pycoproc import Pycoproc
 
 __version__ = '1.4.0'
