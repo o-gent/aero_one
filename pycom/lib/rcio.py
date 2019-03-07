@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # requires a signal (CPPM from a radio) on P10.
     micropython.alloc_emergency_exception_buf(100)
 
-    ppm_out = Rppm(machine.Pin('P10', mode=Pin.IN, pull=Pin.PULL_UP), 8)
+    ppm_out = Rppm(machine.Pin('P4', mode=machine.Pin.IN, pull=machine.Pin.PULL_UP), 8)
 
     while True:
         print(ppm_out.ch, ppm_out.sync_width)
