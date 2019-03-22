@@ -8,7 +8,6 @@ class datalink_setup():
             print(type)
             return True
 
-
 class Datalink():
     def __init__(self, mode):
         self.mode = mode
@@ -23,16 +22,14 @@ class Datalink():
         self._queue = []
         self.temp_id = 0
 
-
     def _id_register(self, id_):
         # add an entry for new ids
         self.packets[id_] = {}
         self.packets[id_]['payload'] = [0]
-    
 
     def refresh(self):
         """ send recieve new data changes """
-        if self.mode = "client":
+        if self.mode == "client":
             self.sock.send(self.process_send().encode())
             self.process_recieve(self.sock.recv(1024))
         else:
@@ -42,7 +39,6 @@ class Datalink():
         # empty queue
         self._queue = []
 
-
     def process_recieve(self, recieved):
         for payload in string_to_list(recieved.decode()):
             try:
@@ -50,7 +46,6 @@ class Datalink():
             except:
                 self._id_register(payload[0])
                 self.packets[payload[0]]['payload'] = payload[1:]
-
 
     def process_send(self):
         try:
@@ -60,7 +55,6 @@ class Datalink():
             return list_to_string(to_send)
         except:
             return list_to_string([0,0])
-
 
     def put(self, id_, message):
         # payload -> self.packets
@@ -73,11 +67,9 @@ class Datalink():
         # append id_ to self.queue
         self._queue.append(id_)
 
-
     def get(self, id_):
         try: return self.packets[id_]['payload']
         except: return False
-
 
 def list_to_string(the_list):
     """ converts list of ints to string """

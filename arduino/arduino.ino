@@ -1,3 +1,14 @@
+
+/*
+ * This program reads an RC PPM signal from PIN 2 into "ch" array
+ * Accepts incoming servo positions on SERIAL into "target" array
+ * 
+ * 
+ * 
+ */
+
+
+
 #include <Servo.h>
 Servo ch1;
 Servo ch2;
@@ -11,11 +22,11 @@ char serial_byte;
 
 // arrays to store incoming servo commands as well as reciever vales
 int target[6] = {0};
-int reciever[6] = {0};
+int reciever[7] = {0};
 
 // PPM related variables 
 unsigned long int ppm_current,ppm_last,ppm_difference;
-int ppm_temp[15],ch1[15],ch[7],i;
+int ppm_temp[15],ch[15],i;
 
 
 void setup() {
@@ -34,23 +45,24 @@ void setup() {
 
 }
 
-
 void loop() {
   sync();
   read_rc();
 }
 
 
-
-
 void sync() {
+  /*
+   * Gets target values from SERIAL
+   */
+  
   // resets incoming string
   incoming = "";
   // if there is a message then read
   while (Serial.available() > 0) {
     serial_byte = Serial.read();  // gets one byte from serial buffer
     incoming += serial_byte;      // add that byte to current message
-    if(z == '\n'){
+    if(serial_byte == '\n'){
       // if end of current 'packet'
       
       // convert and store message in int array
@@ -65,6 +77,10 @@ void sync() {
 }
 
 void send() {
+  /*
+   * send channel values from RC receiver 
+   */
+  
   // relay RC RECIEVER vales
   for(int i = 0; i<6 ; i++){
         Serial.print(reciever[i]); 
@@ -77,9 +93,11 @@ void send() {
 
 
 void read_me() {
- // interrupt function
- // times PPM signal
- // gives channel values 0-1000 
+ /* 
+  * interrupt function
+  * times PPM signal
+  * gives channel values 0-1000 
+  */
  
   ppm_current = micros();   // store time of peak
   ppm_difference = ppm_current - ppm_last;      // calculate time in-between two peaks
@@ -92,29 +110,36 @@ void read_me() {
   // copy values from the temporary array to another array after 15 readings
   if(i==15){
     for(int j=0;j<15;j++){
-      ch1[j]=ppm_temp[j];
+      ch[j]=ppm_temp[j];
     }
     i=0;
   }
 }
 
 void read_rc() {
+  /*
+   * fetches PPM values from tempory array changed by read_me()
+   */
+  
   int t,j,k=0;
 
-  
   for(k = 14; k > -1; k--){
-    if(ch1[k] > 3000){  //if time delay more than 3000, move onto next data packet
+    if(ch[k] > 3000){  //if time delay more than 3000, move onto next data packet
       j=k;
     }
   }
                   
   for(t = 1; t <= 6; t++){
-    ch[t] = (ch1[t+j] - 1000);
+    reciever[t] = (ch[t+j] - 1000);
   }   //assign 6 channel values after separation space
 }
 
 
 String getValue(String data, char separator, int index) {
+  /*
+   * allows strings to be read like arrays using seperator chars
+   */
+  
   int found = 0;
   int strIndex[] = { 0, -1 };
   int maxIndex = data.length() - 1;

@@ -1,34 +1,29 @@
 import time
 
 from display import Display
-from datalink import Datalink
+from datalink import datalink_setup
 
-link = Datalink("dummy2")
+#link = Datalink("client")
+
 disp = Display()
 i = 0
 
-while True:
+with datalink_setup("client") as link:
+    while True:
 
-    # datalink refresh
-    start = time.time()
-    link.refresh()
-    end = time.time()
+        # datalink refresh
+        link.put(1,[0,69])
+        start = time.time()
+        link.refresh()
+        end = time.time()
 
-    disp.latency =  end - start
-    
-    i += 1
-    if i >= 2:
-        # refresh excel 
-        disp.refresh(link.packets)
-        i = 0
-    
-    #print(link.packets)
-
-
-
-x = lambda v: v**2
-
-for i in range(100):
-    d.attitude(x(i), i)
-
+        disp.latency =  end - start
+        
+        i += 1
+        if i >= 2:
+            # refresh excel 
+            disp.refresh(link.packets)
+            i = 0
+            
+        #print(link.packets)
 
