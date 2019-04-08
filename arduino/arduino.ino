@@ -2,12 +2,10 @@
 /*
  * This program reads an RC PPM signal from PIN 2 into "ch" array
  * Accepts incoming servo positions on SERIAL into "target" array
- * 
- * 
+ * Mixes channels for ailerons
+ * Outputs servo positions to pins 3, 5, 6, 9, 10
  * 
  */
-
-
 
 #include <Servo.h>
 Servo ch1;
@@ -16,20 +14,30 @@ Servo ch3;
 Servo ch4;
 Servo ch5;
 
-// variables associated with serial processing
+/*
+ *  PREALLOCATE FOR SPEEEEEEEED
+ */
+
+// Serial related
 String incoming;
 char serial_byte;
 
 // arrays to store incoming servo commands as well as reciever vales
 int target[6] = {0};
-int reciever[7] = {0};
+int reciever[6] = {0};
+int mix[6] = {0};
 
 // PPM related variables 
+int ppm_temp[15], ch[15];
 unsigned long int ppm_current,ppm_last,ppm_difference;
-int ppm_temp[15],ch[15],i;
+int interupt_index = 0;
 
 
 void setup() {
+  incoming.reserve(25); //preallocate memory for string
+  
+  pinMode(LED_BUILTIN, OUTPUT);
+  
   Serial.begin(115200);
   
   // associate channels with pins
@@ -48,6 +56,43 @@ void setup() {
 void loop() {
   sync();
   read_rc();
+  
+  if (reciever[5] > 500) {
+    // enable serial inputs to be written as outputs
+    digitalWrite(LED_BUILTIN, HIGH); // sets arduino LED to on
+    mix_output(target);
+  }
+  
+  else {
+    // write reciever values to outputs
+    digitalWrite(LED_BUILTIN, LOW);
+    mix_output(reciever);
+  }
+  
+}
+
+void mix_output(int input[6]){
+  
+  for (int i = 0; i <=5; i++) {
+    mix[i] = input[i];
+  }
+   
+  /*
+  * MIXES - CHECK ORDER
+  */
+
+  // AILERON sensitivity
+  mix[0] = float((mix[0] - 500)) * mix[4]/1000;
+  mix[0] = mix[0] + 500;
+  
+  // FINAL - AILERONS - ch5 is inverse of ch1
+  mix[4] = abs(mix[0] - 1000);
+   
+  ch1.write(map(mix[0], 0, 1000, 0, 180));
+  ch2.write(map(mix[1], 0, 1000, 0, 180));
+  ch3.write(map(mix[2], 0, 1000, 0, 180));
+  ch4.write(map(mix[3], 0, 1000, 0, 180));
+  ch5.write(map(mix[4], 0, 1000, 0, 180));
 }
 
 
@@ -58,17 +103,18 @@ void sync() {
   
   // resets incoming string
   incoming = "";
+  
   // if there is a message then read
   while (Serial.available() > 0) {
     serial_byte = Serial.read();  // gets one byte from serial buffer
     incoming += serial_byte;      // add that byte to current message
-    if(serial_byte == '\n'){
-      // if end of current 'packet'
-      
+    
+    if (serial_byte == '\n') { // if end of current 'packet'
       // convert and store message in int array
-      for(int i=0; i<6; i++){
+      for(int i = 0; i <= 5; i++){
         target[i] = getValue(incoming, ',', i).toInt();
       }
+      
       // send RECIEVER values
       send();
       break; // stops reading once end of line reaches
@@ -82,10 +128,11 @@ void send() {
    */
   
   // relay RC RECIEVER vales
-  for(int i = 0; i<6 ; i++){
+  for (int i = 0; i <= 5 ; i++) {
         Serial.print(reciever[i]); 
         Serial.print("@"); // separator byte
   }
+  
   // terminate message
   Serial.print("\n");
 }
@@ -103,16 +150,16 @@ void read_me() {
   ppm_difference = ppm_current - ppm_last;      // calculate time in-between two peaks
   ppm_last = ppm_current;          // set last time
   
-  ppm_temp[i] = ppm_difference;//storing 15 values in x array
-  i++;            // increment array index    
+  ppm_temp[interupt_index] = ppm_difference;//storing 15 values in x array
+  interupt_index++;            // increment array index    
 
   // can this be done another way?
   // copy values from the temporary array to another array after 15 readings
-  if(i==15){
-    for(int j=0;j<15;j++){
-      ch[j]=ppm_temp[j];
+  if (interupt_index == 15) {
+    for (int j = 0; j < 15; j++) {
+      ch[j] = ppm_temp[j];
     }
-    i=0;
+    interupt_index = 0;
   }
 }
 
@@ -120,17 +167,16 @@ void read_rc() {
   /*
    * fetches PPM values from tempory array changed by read_me()
    */
-  
-  int t,j,k=0;
+  int interval_index;
 
-  for(k = 14; k > -1; k--){
-    if(ch[k] > 3000){  //if time delay more than 3000, move onto next data packet
-      j=k;
+  for (int i = 14; i >= 0; i--) {
+    if(ch[i] > 3000){  //if time delay more than 3000, move onto next data packet
+      interval_index = i + 1; 
     }
   }
                   
-  for(t = 1; t <= 6; t++){
-    reciever[t] = (ch[t+j] - 1000);
+  for (int i = 0; i <= 5; i++) {
+    reciever[i] = (ch[ i+ interval_index ] - 1000);
   }   //assign 6 channel values after separation space
 }
 
