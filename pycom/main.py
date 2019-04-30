@@ -33,9 +33,8 @@ def main_loop(link):
 
         if f[0]:
             # TELEMETRY
-            link.put(3, rc_read)
-            link.put(2, [int(roll), int(pitch)])
-            link.refresh()
+            link.send(3, rc_read)
+            link.send(2, [int(roll), int(pitch)])
 
 
 
