@@ -114,3 +114,8 @@ def serve():
     print(addr, client.recv(1024))
     
     return client
+
+
+if __name__ == "__main__":
+    link = datalink_setup()
+    

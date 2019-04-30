@@ -6,7 +6,7 @@ import time
 
 from sensor_read import roll_pitch, pressure
 from datalink import datalink_setup
-from rcio import Rppm, rc_read_write
+from rcio import rc_read_write
 
 # enable / disable features - telem, sensor, stability, rc
 f = (1,1,0,1)
