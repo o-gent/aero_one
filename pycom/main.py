@@ -35,6 +35,7 @@ def main_loop(link):
             # TELEMETRY
             link.send(3, rc_read)
             link.send(2, [int(roll), int(pitch)])
+            link.send(1, acc)
 
 
 

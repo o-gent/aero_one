@@ -1,3 +1,5 @@
+# LEGACY
+
 import socket
 
 class datalink_setup():

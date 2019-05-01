@@ -1,29 +1,21 @@
-import time
+from client import Client
 
-from display import Display
-from datalink import datalink_setup
+# connect to drone
+sock = Client('192.168.4.1')
 
-#link = Datalink("client")
+# loop while connected
+while sock:
+    # fetch new data
+    sock.recieve()
 
-disp = Display()
-i = 0
-
-with datalink_setup("client") as link:
-    while True:
-
-        # datalink refresh
-        link.put(1,[0,69])
-        start = time.time()
-        link.refresh()
-        end = time.time()
-
-        disp.latency =  end - start
-        
-        i += 1
-        if i >= 2:
-            # refresh excel 
-            disp.refresh(link.packets)
-            i = 0
-            
-        #print(link.packets)
-
+    # ACC raw data
+    try: print(sock.data[1])
+    except: pass
+    
+    # roll/pitch data
+    try: print(sock.data[2])
+    except: pass
+    
+    # Radio channel data
+    try: print(sock.data[3])
+    except: pass
