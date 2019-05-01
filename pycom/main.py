@@ -6,7 +6,7 @@ import time
 
 from sensor_read import roll_pitch, pressure
 from datalink import datalink_setup
-from rcio import Rppm, rc_read_write
+from rcio import rc_read_write
 
 # enable / disable features - telem, sensor, stability, rc
 f = (1,1,0,1)
@@ -33,10 +33,8 @@ def main_loop(link):
 
         if f[0]:
             # TELEMETRY
-            link.put(4, acc)
-            link.put(3, rc_read)
-            link.put(2, [int(roll), int(pitch)])
-            link.refresh()
+            link.send(3, rc_read)
+            link.send(2, [int(roll), int(pitch)])
 
 
 
