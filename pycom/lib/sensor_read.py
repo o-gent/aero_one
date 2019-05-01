@@ -24,7 +24,7 @@ def roll_pitch():
     x,y,z = attitude.acceleration()
     roll = math.atan2(-x, z) * (180 / math.pi)
     pitch = -math.atan2(y, (math.sqrt(x*x + z*z))) * (180 / math.pi)
-    return roll, pitch
+    return roll, pitch, [x,y,z]
 
 def pressure():
     return p.pressure()

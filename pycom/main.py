@@ -18,7 +18,7 @@ def main_loop(link):
         
         if f[1]:
             # SENSOR DATA
-            roll, pitch= roll_pitch()
+            roll, pitch, acc= roll_pitch()
 
 
         if f[2]:
@@ -33,6 +33,7 @@ def main_loop(link):
 
         if f[0]:
             # TELEMETRY
+            link.put(4, acc)
             link.put(3, rc_read)
             link.put(2, [int(roll), int(pitch)])
             link.refresh()

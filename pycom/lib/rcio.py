@@ -12,7 +12,7 @@ def rc_read_write(conn, rc_write):
     get/send new RC data from UART - no this is not nice.
     """
     conn.write(str(rc_write)[1:len(rc_write)-1] + '\n')    # definitly not great performance
-    rc_read = str(conn.readline()) # example: "b'0@500@500@0@500@992@\n'"
+    rc_read = str(conn.readline())[2:] # example: "b'0@500@500@0@500@992@\n'"
     return list(map(int,rc_read.split('@')[1:-1]))
 
 
