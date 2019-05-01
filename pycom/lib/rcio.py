@@ -2,51 +2,16 @@
 Any RC communication with servos & receiver. 
 """
 
+from machine import Pin
 import machine
 import micropython
+import time
 
-
-class Rppm():
+def rc_read_write(conn, rc_write):
     """
-    Read a combined PPM signal from a R/C radio.
-    @note, this uses timer 2.
+    get/send new RC data from UART
     """
-    timer = None
-    def __init__(self, pin, numChannels = 8):
-        """
-
-        """
-        self.pin = pin
-        self.interrupt = self.pin.callback(machine.Pin.IRQ_FALLING | machine.Pin.IRQ_RISING, self.callback)
-        self.timer = machine.Timer.Chrono()
-
-        self.start = 0
-        self.width = 0
-        self.channel = 0
-        self.numChannels = numChannels
-        self.ch = [0]*numChannels
-        self.sync_width = 0
-
-    def callback(self, arg):
-        self.width = (self.timer.read_us() - self.timer.start)
-        self.timer.reset()
-        self.start = self.timer.start()
-
-        if self.width > 4000:
-            self.channel = 0
-            self.sync_width = self.width
-            return
-        if self.channel == self.numChannels:
-            return
-        self.ch[self.channel] = self.width
-        self.channel += 1
-
-
-if __name__ == "__main__":
-    # requires a signal (CPPM from a radio) on P10.
-    micropython.alloc_emergency_exception_buf(100)
-
-    ppm_out = Rppm(machine.Pin('P4', mode=machine.Pin.IN, pull=machine.Pin.PULL_UP), 8)
-
-    while True:
-        print(ppm_out.ch, ppm_out.sync_width)
+    conn.write(str(rc_write)[1:len(rc_write)-1] + '\n')    # definitly not great performance
+    rc_read = conn.readline().decode() # example: "0@500@500@0@500@992@\n"
+    print(rc_read)
+    return list(map(int,rc_read.split('@')[:-2]))
