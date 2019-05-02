@@ -12,7 +12,7 @@ while sock:
     try: print(sock.data[1])
     except: pass
     
-    # roll/pitch data
+    # roll/pitch data   
     try: print(sock.data[2])
     except: pass
     

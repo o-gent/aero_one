@@ -35,7 +35,7 @@ void setup() {
   
   pinMode(LED_BUILTIN, OUTPUT);
   
-  Serial.begin(9600);
+  Serial.begin(57600);
   
   // associate channels with pins
   ch1.attach(3);
@@ -111,7 +111,6 @@ void sync() {
         
         if (serial_byte == '\n') { // if end of current 'packet'
           // convert and store message in int array
-          Serial.println(incoming);
           
           for(int i = 0; i <= 5; i++){
             target[i] = getValue(incoming, ',', i).toInt();

@@ -2,7 +2,7 @@ import time
 from machine import Timer
 from machine import UART
 import pycom
-import time
+import math
 
 from sensor_read import roll_pitch, pressure
 from datalink import datalink_setup
@@ -11,16 +11,15 @@ from rcio import rc_read_write
 # enable / disable features - telem, sensor, stability, rc
 f = (1,1,1,1)
 
-#prev_time = 0
-
-chrono = Timer.Chrono
-
 
 
 def main_loop(link):
     # executes while link to ground station is active - breaks upon lost connection
     time_running = 0
     dt = 0.02
+    chrono = Timer.Chrono()
+    rc_write = [0,0,0,0,0,0]
+
     while True:
         if f[1]:
             # SENSOR DATA
@@ -31,23 +30,20 @@ def main_loop(link):
             # STABILITY CALCULATIONS
             chrono.stop()
 
-            dt = chrono.read() # calculate time step to be used in calculations (e.g. integration, differentiation)
+            dt = chrono.read()
 
             chrono.start()
 
-            time_running += dt
-            #prev_time = time.ticks_ms() / 1000 # set the previous time value for the next iteration to be equal to the current time value in this iteration
-            test_servo = 180 * sin(2*3.1416*time_running)
-            rc_write[2] = test_servo
+            time_running+=dt
+            test_servo = abs(int(1000 * math.sin(2*3.1416*time_running * 0.0001)))
+            rc_write[0] = test_servo
+
+
+        
 
 
         if f[3]:
-            # RC IO
-            try:
-                rc_read = rc_read_write(conn, rc_write)
-            except:
-                rc_read = [0,0,0,0,0,0]
-                pass
+            rc_read = rc_read_write(conn, rc_write)
 
 
         if f[0]:
@@ -69,7 +65,7 @@ def backup_loop():
 
 if f[3]:
     # set up serial connection to arduino using custom pins
-    conn = UART(1, baudrate = 115200, pins = ('P4', 'P10'))
+    conn = UART(1, baudrate = 57600, pins = ('P4', 'P10'))
     # initialise variables for clarity
     rc_write = [0,0,0,0,0,0]   #6 channels
     rc_read = [0,0,0,0,0,0]     # ""
