@@ -10,6 +10,9 @@ from rcio import rc_read_write
 
 # enable / disable features - telem, sensor, stability, rc
 f = (1,1,0,1)
+dt = 0.02
+prev_time = 0
+
 
 
 def main_loop(link):
@@ -22,8 +25,12 @@ def main_loop(link):
 
         if f[2]:
             # STABILITY CALCULATIONS
+            
             rc_write = [0,0,0,0,0,0]
-
+            dt = (time.ticks_ms() / 1000) - prev_time # calculate time step to be used in calculations (e.g. integration, differentiation)
+            prev_time = time.ticks_ms() / 1000 # set the previous time value for the next iteration to be equal to the current time value in this iteration
+            test_servo = 180 * sin(2*3.1416*(time.ticks_ms()/1000))
+            rc_write[2] = test_servo
 
         if f[3]:
             # RC IO
