@@ -103,3 +103,4 @@ venv.bak/
 .mypy_cache/
 
 ground_station/~$main.xlsx
+.vscode/ipch/43698b5c5a5c5070/mmap_address.bin
