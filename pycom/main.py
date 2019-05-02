@@ -2,7 +2,7 @@ import time
 from machine import Timer
 from machine import UART
 import pycom
-import time
+import math
 
 from sensor_read import roll_pitch, pressure
 from datalink import datalink_setup
@@ -15,6 +15,11 @@ f = (1,1,1,1)
 
 def main_loop(link):
     # executes while link to ground station is active - breaks upon lost connection
+    time_running = 0
+    dt = 0.02
+    chrono = Timer.Chrono()
+    rc_write = [0,0,0,0,0,0]
+
     while True:
         if f[1]:
             # SENSOR DATA
@@ -23,16 +28,21 @@ def main_loop(link):
 
         if f[2]:
             # STABILITY CALCULATIONS
-            rc_write = [0,0,0,0,0,0]
+            chrono.stop()
+
+            dt = chrono.read()
+
+            chrono.start()
+
+            time_running+=dt
+            test_servo = abs(int(1000 * math.sin(2*3.1416*time_running * 0.0001)))
+            rc_write[0] = test_servo
+
+
         
 
         if f[3]:
-            # RC IO
-            try:
-                rc_read = rc_read_write(conn, rc_write)
-            except:
-                rc_read = [0,0,0,0,0,0]
-                pass
+            rc_read = rc_read_write(conn, rc_write)
 
 
         if f[0]:
