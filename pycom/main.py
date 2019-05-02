@@ -18,14 +18,15 @@ prev_time = 0
 def main_loop(link):
     # executes while link to ground station is active - breaks upon lost connection
     while True:
-        
         if f[1]:
             # SENSOR DATA
-            roll, pitch, acc= roll_pitch()
+            roll, pitch, acc = roll_pitch()
 
 
         if f[2]:
             # STABILITY CALCULATIONS
+            
+            rc_write = [0,0,0,0,0,0]
             dt = (time.ticks_ms() / 1000) - prev_time # calculate time step to be used in calculations (e.g. integration, differentiation)
             prev_time = time.ticks_ms() / 1000 # set the previous time value for the next iteration to be equal to the current time value in this iteration
             test_servo = 180 * sin(2*3.1416*(time.ticks_ms()/1000))
@@ -33,14 +34,18 @@ def main_loop(link):
 
         if f[3]:
             # RC IO
-            rc_read = rc_read_write(conn, rc_write)
+            try:
+                rc_read = rc_read_write(conn, rc_write)
+            except:
+                rc_read = [0,0,0,0,0,0]
+                pass
 
 
         if f[0]:
             # TELEMETRY
             link.send(3, rc_read)
             link.send(2, [int(roll), int(pitch)])
-            link.send(1, acc)
+            link.send(1, [acc[0], acc[1], acc[2]])
 
 
 
