@@ -14,9 +14,6 @@ Servo ch3;
 Servo ch4;
 Servo ch5;
 
-/*
- *  PREALLOCATE FOR SPEEEEEEEED
- */
 
 // Serial related
 String incoming;
@@ -34,11 +31,11 @@ int interupt_index = 0;
 
 
 void setup() {
-  incoming.reserve(25); //preallocate memory for string
+  //incoming.reserve(25); //preallocate memory for string
   
   pinMode(LED_BUILTIN, OUTPUT);
   
-  Serial.begin(115200);
+  Serial.begin(57600);
   
   // associate channels with pins
   ch1.attach(3);
@@ -82,8 +79,8 @@ void mix_output(int input[6]){
   */
 
   // AILERON sensitivity
-  mix[0] = float((mix[0] - 500)) * mix[4]/1000;
-  mix[0] = mix[0] + 500;
+  //mix[0] = float((mix[0] - 500)) * mix[4]/1000;
+  //mix[0] = mix[0] + 500;
   
   // FINAL - AILERONS - ch5 is inverse of ch1
   mix[4] = abs(mix[0] - 1000);
@@ -105,19 +102,25 @@ void sync() {
   incoming = "";
   
   // if there is a message then read
-  while (Serial.available() > 0) {
-    serial_byte = Serial.read();  // gets one byte from serial buffer
-    incoming += serial_byte;      // add that byte to current message
-    
-    if (serial_byte == '\n') { // if end of current 'packet'
-      // convert and store message in int array
-      for(int i = 0; i <= 5; i++){
-        target[i] = getValue(incoming, ',', i).toInt();
+  if (Serial.available() > 0) {
+    // then wait for message to complete
+    while (true){
+      if (Serial.available() > 0) {
+        serial_byte = Serial.read(); // gets one byte from serial buffer
+        incoming.concat(serial_byte);    // add that byte to current message
+        
+        if (serial_byte == '\n') { // if end of current 'packet'
+          // convert and store message in int array
+          
+          for(int i = 0; i <= 5; i++){
+            target[i] = getValue(incoming, ',', i).toInt();
+          }
+          
+          // send RECIEVER values
+          send();
+          break; // stops reading once end of line reaches
+        }
       }
-      
-      // send RECIEVER values
-      send();
-      break; // stops reading once end of line reaches
     }
   }
 }

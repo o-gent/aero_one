@@ -64,7 +64,7 @@ def backup_loop():
 
 if f[3]:
     # set up serial connection to arduino using custom pins
-    conn = UART(1, baudrate = 115200, pins = ('P4', 'P10'))
+    conn = UART(1, baudrate = 57600, pins = ('P4', 'P10'))
     # initialise variables for clarity
     rc_write = [0,0,0,0,0,0]   #6 channels
     rc_read = [0,0,0,0,0,0]     # ""
