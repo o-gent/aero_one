@@ -15,27 +15,30 @@ f = (1,1,0,1)
 def main_loop(link):
     # executes while link to ground station is active - breaks upon lost connection
     while True:
-        
         if f[1]:
             # SENSOR DATA
-            roll, pitch, acc= roll_pitch()
+            roll, pitch, acc = roll_pitch()
 
 
         if f[2]:
             # STABILITY CALCULATIONS
-            pass
+            rc_write = [0,0,0,0,0,0]
 
 
         if f[3]:
             # RC IO
-            rc_read = rc_read_write(conn, rc_write)
+            try:
+                rc_read = rc_read_write(conn, rc_write)
+            except:
+                rc_read = [0,0,0,0,0,0]
+                pass
 
 
         if f[0]:
             # TELEMETRY
             link.send(3, rc_read)
             link.send(2, [int(roll), int(pitch)])
-            link.send(1, acc)
+            link.send(1, [acc[0], acc[1], acc[2]])
 
 
 

@@ -28,7 +28,7 @@ class Client():
                 message = message.split(',')
                 l = []
                 for i in message:
-                    l.append(int(i))
+                    l.append(float(i))
                 message = l
 
                 self.data[id_] = message
