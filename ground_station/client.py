@@ -12,6 +12,7 @@ class Client():
             sock.send(b'initialise')
             self.sock = sock
         except Exception as e:
+            self.sock = None
             print("Socket failed to connect! exception {}".format(e))
     
     def recieve(self):
