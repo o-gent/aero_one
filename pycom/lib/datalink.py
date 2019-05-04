@@ -11,6 +11,7 @@ class datalink_setup():
 
 class Server():
     def __init__(self):
+        self.string = " "
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -31,5 +32,12 @@ class Server():
             sock.close()
         
     def send(self, id_, message):
-        string = str(id_) + "_" + str(message) + "@"
-        self.sock.send(string.encode())
+        if id_ == 0:
+            self.string += str(id_) + "_" + str(message) + "@"
+            self.sock.send(self.string.encode())
+            self.string = " "
+        else:
+            self.string += str(id_) + "_" + str(message) + "@"
+        
+        #string = str(id_) + "_" + str(message) + "@"
+        #self.sock.send(string.encode())

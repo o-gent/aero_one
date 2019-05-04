@@ -3,6 +3,8 @@ import os
 import subprocess
 import threading
 import time
+import numpy as np
+import matplotlib.pyplot as plt
 
 _ = os.system('cls')
 
@@ -24,12 +26,12 @@ print("""
 # wait to connect to the network
 # netsh wlan connect name=PROFILE_NAME interface="[netsh wlan show interfaces]"
 output = 0
-while output != "connected!":
-    try: output = subprocess.check_output(["netsh", "wlan", "connect" , "name=IamDeath,DoW"]).decode()
+while output != "Connection request was completed successfully.":
+    try: output = subprocess.check_output(["netsh", "wlan", "connect" , "name=kevin"]).decode().strip()
     except Exception as e: output = e.output.decode(); print("Make sure Kevin is on and/or restart pycom", end ='\n')
     finished = output.splitlines()
     for line in finished: print(line, end = '\n')
-    time.sleep(1)
+    time.sleep(4)
 
 
 # get signal of closest WiFi network
@@ -59,28 +61,53 @@ if not sock.sock:
     time.sleep(1)
     exit()
 
+time.sleep(1)
+
 _ = os.system('cls')
 
 
 
-# loop while connected
-while sock:
-    # fetch new data
-    sock.recieve()
+start = time.time()
+signal = 0
 
-    # ACC raw data
-    try: print(sock.data[1], flush = True)
-    except: pass
-    
-    # roll/pitch data   
-    try: print(sock.data[2], flush = True)
-    except: pass
-    
-    # Radio channel data
-    try: print(sock.data[3], flush = True)
-    except: pass
+try:
+    # loop while connected
+    while sock:
+        # fetch new data
+        sock.recieve()
 
-    print(subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"]).decode().splitlines()[9], flush = True)
+        # ACC raw 
+        try: print("ACC raw: " + str(sock.data[1]) + "                      " )
+        except: pass
+        
+        # roll/pitch   
+        try: print("roll/pitch: " + str(sock.data[2]) + "                      ")
+        except: pass
 
-    # clear terminal
-    print(100* '\b', flush= True)
+        # Radio channel
+        try: print("Radio channel: " + str(sock.data[3]) + "                      ")
+        except: pass
+
+        # channel target
+        try: print("channel target: " + str(sock.data[4]) + "                      ")
+        except: pass
+        
+        # pressure 
+        try: print("pressure data: " + str(sock.data[5]) + "                      ")
+        except: pass
+        
+        # pressure 
+        try: print("loop time: " + str(sock.data[0]) + "                      ")
+        except: pass
+        
+        if time.time() - start > 10:
+            # this needs to be a call back rather than interupting the main loop
+            signal = subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"]).decode().splitlines()[9]
+            start = time.time()
+        print(signal, flush = True)
+
+        # clear terminal
+        print(2000 * '\b', flush= True)
+
+except:
+    sock.sock.close()
