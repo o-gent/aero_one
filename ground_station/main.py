@@ -5,6 +5,8 @@ import threading
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+from multiprocessing.pool import ThreadPool
+pool = ThreadPool(processes=2)
 
 _ = os.system('cls')
 
@@ -66,9 +68,13 @@ time.sleep(1)
 _ = os.system('cls')
 
 
+def signal_strength():
+    return subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"]).decode().splitlines()[9]
+
 
 start = time.time()
 signal = 0
+thresh = 9
 
 try:
     # loop while connected
@@ -100,14 +106,23 @@ try:
         try: print("loop time: " + str(sock.data[0]) + "                      ")
         except: pass
         
-        if time.time() - start > 10:
-            # this needs to be a call back rather than interupting the main loop
-            signal = subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"]).decode().splitlines()[9]
+        thetime = time.time()
+
+        if thetime - start > thresh:
+            # start function in other thread
+            async_result = pool.apply_async(signal_strength)
+            thresh = 11
+        
+        if thetime - start > 10:
+            signal = async_result.get()
             start = time.time()
+            thresh = 9
+        
         print(signal, flush = True)
 
         # clear terminal
         print(2000 * '\b', flush= True)
 
-except:
+except Exception as e:
+    print(e)
     sock.sock.close()

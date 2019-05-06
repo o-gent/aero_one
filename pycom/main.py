@@ -1,6 +1,7 @@
 import time
 from machine import Timer
 from machine import UART
+import machine
 import pycom
 import math
 
@@ -9,7 +10,7 @@ from datalink import datalink_setup
 from rcio import rc_read_write
 
 # enable / disable features - telem, sensor, stability, rc
-f = (1,1,0,1)
+f = (1,1,1,1)
 
 
 
@@ -72,6 +73,7 @@ def backup_loop():
     
     pycom.rgbled(0x7f0000) # red
     print("connection lost - moved to fallback loop")
+    machine.reset()
 
 # set colour
 pycom.heartbeat(False)
