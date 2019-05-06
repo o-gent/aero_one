@@ -27,7 +27,7 @@ def roll_pitch():
     return roll, pitch, [x,y,z]
 
 def pressure():
-    return p.pressure()
+    return p.pressure()/100 #hPa
 """
 def pressure():
     return (((ground_pressure/p.pressure())**(1/5.258) - 1) * (ground_temperature + 273.15))/0.0065

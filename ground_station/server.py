@@ -1,17 +1,7 @@
 import socket
 
-class datalink_setup():
-    def __enter__(self):
-        return Server()
-
-    def __exit__(self, type, value, traceback):
-            print(type)
-            return True
-
-
 class Server():
     def __init__(self):
-        self.string = " "
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -32,12 +22,12 @@ class Server():
             sock.close()
         
     def send(self, id_, message):
-        if id_ == 0:
-            self.string += str(id_) + "_" + str(message) + "@"
-            self.sock.send(self.string.encode())
-            self.string = " "
-        else:
-            self.string += str(id_) + "_" + str(message) + "@"
+        try:
+            string = str(id_) + "_" + str(message) + "@"
+            self.sock.send(string.encode())
         
-        #string = str(id_) + "_" + str(message) + "@"
-        #self.sock.send(string.encode())
+        except Exception as e:
+            print("server had exception:{}".format(e))
+        
+        finally:
+            pass

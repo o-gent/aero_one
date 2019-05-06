@@ -1,6 +1,7 @@
 import time
 from machine import Timer
 from machine import UART
+import machine
 import pycom
 import math
 
@@ -20,10 +21,15 @@ def main_loop(link):
     chrono = Timer.Chrono()
     rc_write = [0,0,0,0,0,0]
 
+    loop_time = Timer.Chrono()
+
     while True:
+        loop_time.start()
+
         if f[1]:
             # SENSOR DATA
             roll, pitch, acc = roll_pitch()
+            raw_pressure = pressure()
 
 
         if f[2]:
@@ -48,9 +54,17 @@ def main_loop(link):
 
         if f[0]:
             # TELEMETRY
+
+            link.send(5, [raw_pressure])
+            link.send(4, rc_write)
             link.send(3, rc_read)
             link.send(2, [int(roll), int(pitch)])
             link.send(1, [acc[0], acc[1], acc[2]])
+            
+            l = loop_time.read_ms()
+            # send time taken to do main loop
+            link.send(0, [l])
+            loop_time.reset()
 
 
 
@@ -60,8 +74,11 @@ def backup_loop():
     
     pycom.rgbled(0x7f0000) # red
     print("connection lost - moved to fallback loop")
+    machine.reset()
 
-
+# set colour
+pycom.heartbeat(False)
+pycom.rgbled(0xf200ea)
 
 if f[3]:
     # set up serial connection to arduino using custom pins
