@@ -4,7 +4,8 @@ from machine import UART
 import machine
 import pycom
 import math
-import stability.Utility
+from stability.Utility import limitByRate, mapInput, limit
+from stability.filters import LowPassFilter
 
 from sensor_read import roll_pitch, pressure
 from datalink import datalink_setup
@@ -20,7 +21,14 @@ def main_loop(link):
     dt = 0.02
     chrono = Timer.Chrono()
     rc_write = [0,0,0,0,0,0]
+    rc_read = [0,0,0,0,0,0]
     loop_time = Timer.Chrono()
+    test_servo = 0
+    pitch_prev = 0
+    pitch_rate = 0
+    l = 0.005
+    lpf_pitch_rate = LowPassFilter(1,0.5)
+    lpf_pitch = LowPassFilter(1,0.1)
 
     while True:
         loop_time.start()
@@ -34,14 +42,27 @@ def main_loop(link):
 
         if f[2]:
             # STABILITY CALCULATIONS
-            dt = loop_time.read()
+            """
+            try:
+                servo_rate = mapInput(rc_read[4], 0, 1000, 90, 300)
+                test_servo = limitByRate((rc_read[0] + (acc[2] - 1)*500)
 
-            test_servo = limitByRate(rc_read[0], (1000/90) * 10, dt)
-            rc_write[0] = test_servo
+            except Exception as e:
+                print(e)
+            """
+            try:
+                pitch = lpf_pitch.step(pitch,l/1000)
+                dt = loop_time.read()
+                servo_rate = mapInput(rc_read[4], 0, 1000, 90, 300)
+                pitch_rate = limit((pitch - pitch_prev)/(l/1000), 30, -30)  #lpf_pitch_rate.step(limit((pitch - pitch_prev)/(l/1000), 300, -300), l/1000)
+                pitch_rate = lpf_pitch_rate.step(pitch_rate, l/1000)
+                test_servo = limitByRate((rc_read[0] + limit(pitch_rate*30, 300, -300)), test_servo, (1000/180) * servo_rate, l/1000)
+                rc_write[0] = limit(test_servo,1000, 0)
+                pitch_prev = pitch
 
-
-        
-
+            except Exception as e:
+                print(e)
+            
 
         if f[3]:
             rc_read = rc_read_write(conn, rc_write)
@@ -53,7 +74,7 @@ def main_loop(link):
             link.send(5, [raw_pressure])
             link.send(4, rc_write)
             link.send(3, rc_read)
-            link.send(2, [int(roll), int(pitch)])
+            link.send(2, [roll, pitch])
             link.send(1, [acc[0], acc[1], acc[2]])
             
             l = loop_time.read_ms()

@@ -36,7 +36,7 @@ while output != "Connection request was completed successfully.":
 
 
 # get signal of closest WiFi network
-print(subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"]).decode().splitlines()[9])
+#print(subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"]).decode().splitlines()[9])
 
 _ = os.system('cls')
 
@@ -107,6 +107,7 @@ try:
         
         thetime = time.time()
 
+        """
         if thetime - start > thresh:
             # start function in other thread
             async_result = pool.apply_async(signal_strength)
@@ -116,7 +117,7 @@ try:
             signal = async_result.get()
             start = time.time()
             thresh = 4
-        
+        """
         print(signal, flush = True)
 
         # clear terminal
