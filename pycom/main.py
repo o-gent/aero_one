@@ -4,6 +4,7 @@ from machine import UART
 import machine
 import pycom
 import math
+import stability.Utility
 
 from sensor_read import roll_pitch, pressure
 from datalink import datalink_setup
@@ -35,7 +36,7 @@ def main_loop(link):
             # STABILITY CALCULATIONS
             dt = loop_time.read()
 
-            test_servo = abs(int(1000 * math.sin(2*3.1416*dt)))
+            test_servo = limitByRate(rc_read[0], (1000/90) * 10, dt)
             rc_write[0] = test_servo
 
 

@@ -22,5 +22,18 @@ def interpolate(independent_list, dependent_list, independent_value):
 
     for x in independent_list:
         if independent_value <= x:
-            return 0
+            pass;
+            return 0;
+
+def limitByRate(input, target_rate, dt):
+
+    output = 0;
+
+    rate = (input - output) / dt;
+
+    rate = limit(rate, target_rate, -target_rate);
+
+    output += rate * dt;
+
+    return output;
 
