@@ -16,15 +16,14 @@ f = (1,1,1,1)
 
 def main_loop(link):
     # executes while link to ground station is active - breaks upon lost connection
-    time_running = 0
     dt = 0.02
     chrono = Timer.Chrono()
     rc_write = [0,0,0,0,0,0]
-
     loop_time = Timer.Chrono()
 
     while True:
         loop_time.start()
+
 
         if f[1]:
             # SENSOR DATA
@@ -34,14 +33,9 @@ def main_loop(link):
 
         if f[2]:
             # STABILITY CALCULATIONS
-            chrono.stop()
+            dt = loop_time.read()
 
-            dt = chrono.read()
-
-            chrono.start()
-
-            time_running+=dt
-            test_servo = abs(int(1000 * math.sin(2*3.1416*time_running * 0.0001)))
+            test_servo = abs(int(1000 * math.sin(2*3.1416*dt)))
             rc_write[0] = test_servo
 
 
@@ -73,7 +67,6 @@ def backup_loop():
     
     pycom.rgbled(0x7f0000) # red
     print("connection lost - moved to fallback loop")
-    machine.reset()
 
 # set colour
 pycom.heartbeat(False)
@@ -100,3 +93,6 @@ if f[0]:
 
 else:
     main_loop(None)
+
+print("finish")
+machine.reset()
