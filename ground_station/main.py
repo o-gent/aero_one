@@ -4,7 +4,6 @@ import subprocess
 import threading
 import time
 import numpy as np
-import matplotlib.pyplot as plt
 from multiprocessing.pool import ThreadPool
 pool = ThreadPool(processes=2)
 
@@ -74,7 +73,7 @@ def signal_strength():
 
 start = time.time()
 signal = 0
-thresh = 9
+thresh = 4
 
 try:
     # loop while connected
@@ -113,10 +112,10 @@ try:
             async_result = pool.apply_async(signal_strength)
             thresh = 11
         
-        if thetime - start > 10:
+        if thetime - start > 5:
             signal = async_result.get()
             start = time.time()
-            thresh = 9
+            thresh = 4
         
         print(signal, flush = True)
 
