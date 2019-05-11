@@ -13,11 +13,13 @@ class Actuator:
 
     def step(self, stick_input, sas_input, dt): #stick_input is in 0 to 1000 whereas sas_input is stability augmentation input in degrees corresponding to the surface deflection
         max_1 = self.max * self.servo_to_hinge * self.in_to_servo
+        stick_input_1 = mapInput(stick_input, 0, 1000, 0, max_1)
+
         rate_1 = self.rate * self.servo_to_hinge * self.in_to_servo
 
         sas_to_in = sas_input * self.servo_to_hinge * self.in_to_servo
 
-        input_1 = self.antiAliasing.step(limit(stick_input + sas_to_in, max_1, 0), dt)
+        input_1 = self.antiAliasing.step(limit(stick_input_1 + sas_to_in, max_1, 0), dt)
 
         self.output = limitByRate(input_1, self.output, rate_1, dt)
         return self.output
