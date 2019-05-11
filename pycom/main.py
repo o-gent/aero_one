@@ -18,7 +18,7 @@ f = (1,1,1,1)
 
 def main_loop(link):
     # executes while link to ground station is active - breaks upon lost connection
-    dt = 0.02
+    dt = 0.005
     chrono = Timer.Chrono()
     rc_write = [0,0,0,0,0,0]
     rc_read = [0,0,0,0,0,0]
@@ -26,7 +26,7 @@ def main_loop(link):
     test_servo = 0
     pitch_prev = 0
     pitch_rate = 0
-    l = 0.005
+    l = 5
     lpf_pitch_rate = LowPassFilter(1,0.5)
     lpf_pitch = LowPassFilter(1,0.1)
 
@@ -42,6 +42,7 @@ def main_loop(link):
 
         if f[2]:
             # STABILITY CALCULATIONS
+            dt = l/1000
             """
             try:
                 servo_rate = mapInput(rc_read[4], 0, 1000, 90, 300)
@@ -51,12 +52,12 @@ def main_loop(link):
                 print(e)
             """
             try:
-                pitch = lpf_pitch.step(pitch,l/1000)
-                dt = loop_time.read()
+                pitch = lpf_pitch.step(pitch,dt)
+                #dt = loop_time.read()
                 servo_rate = mapInput(rc_read[4], 0, 1000, 90, 300)
-                pitch_rate = limit((pitch - pitch_prev)/(l/1000), 30, -30)  #lpf_pitch_rate.step(limit((pitch - pitch_prev)/(l/1000), 300, -300), l/1000)
-                pitch_rate = lpf_pitch_rate.step(pitch_rate, l/1000)
-                test_servo = limitByRate((rc_read[0] + limit(pitch_rate*30, 300, -300)), test_servo, (1000/180) * servo_rate, l/1000)
+                pitch_rate = limit((pitch - pitch_prev)/(dt), 30, -30)  #lpf_pitch_rate.step(limit((pitch - pitch_prev)/(l/1000), 300, -300), l/1000)
+                pitch_rate = lpf_pitch_rate.step(pitch_rate, dt)
+                test_servo = limitByRate((rc_read[0] + limit(pitch_rate*30, 300, -300)), test_servo, (1000/180) * servo_rate, dt)
                 rc_write[0] = limit(test_servo,1000, 0)
                 pitch_prev = pitch
 
