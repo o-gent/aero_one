@@ -12,14 +12,14 @@ class Actuator:
         self.antiAliasing = LowPassFilter(1, 0.05) # anti-wonkifying smoothing of the input signal to the servo
 
     def step(self, stick_input, sas_input, dt): #stick_input is in 0 to 1000 whereas sas_input is stability augmentation input in degrees corresponding to the surface deflection
-        max_1 = max * self.servo_to_hinge * self.in_to_servo
+        max_1 = self.max * self.servo_to_hinge * self.in_to_servo
         rate_1 = self.rate * self.servo_to_hinge * self.in_to_servo
 
         sas_to_in = sas_input * self.servo_to_hinge * self.in_to_servo
 
-        input_1 = self.antiAliasing.step(limit(stick_input + sas_to_in, 1000, 0), dt)
+        input_1 = self.antiAliasing.step(limit(stick_input + sas_to_in, max_1, 0), dt)
 
-        self.output = limitByRate(input_1, self.output, self.rate, dt)
+        self.output = limitByRate(input_1, self.output, rate_1, dt)
         return self.output
 
 
