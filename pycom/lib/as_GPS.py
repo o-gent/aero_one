@@ -32,6 +32,7 @@ KML = const(4)
 KPH = const(10)
 MPH = const(11)
 KNOT = const(12)
+MS = const(13)
 # Date formats
 MDY = const(20)
 DMY = const(21)
@@ -53,7 +54,7 @@ COURSE = const(RMC | VTG)
 
 class AS_GPS(object):
     # Can omit time consuming checks: CRC 6ms Bad char and line length 9ms
-    FULL_CHECK = True
+    FULL_CHECK = False
     _SENTENCE_LIMIT = 76  # Max sentence length (based on GGA sentence)
     _NO_FIX = 1
 
@@ -117,7 +118,7 @@ class AS_GPS(object):
                                     'GPGGA': self._gpgga, 'GLGGA': self._gpgga,
                                     'GPVTG': self._gpvtg, 'GLVTG': self._gpvtg,
                                     'GPGSA': self._gpgsa, 'GLGSA': self._gpgsa,
-                                    'GPGSV': self._gpgsv, 'GLGSV': self._gpgsv,
+                                    #'GPGSV': self._gpgsv, 'GLGSV': self._gpgsv,
                                     'GPGLL': self._gpgll, 'GLGLL': self._gpgll,
                                     'GNGGA': self._gpgga, 'GNRMC': self._gprmc,
                                     'GNVTG': self._gpvtg,
@@ -170,56 +171,93 @@ class AS_GPS(object):
 
         # Received status
         self._valid = 0  # Bitfield of received sentences
+        
+        
+        # STARTS GPS LOOP :) 
+
         if sreader is not None:  # Running with UART data
             loop = asyncio.get_event_loop()
             loop.create_task(self._run(loop))
+
+
+
+
+
+
+
+
+
+
 
     ##########################################
     # Data Stream Handler Functions
     ##########################################
 
     async def _run(self, loop):
+
         while True:
+            # MAIN GPS LOOP
+            
+            # get new line from GPS
             res = await self._sreader.readline()
+            
+            await asyncio.sleep(0)
+            
             try:
                 res = res.decode('utf8')
             except UnicodeError:  # Garbage: can happen e.g. on baudrate change
                 continue
+            
             loop.create_task(self._update(res))
             await asyncio.sleep(0)  # Ensure task runs and res is copied
+
 
     # Update takes a line of text
     async def _update(self, line):
         line = line.rstrip()  # Copy line
+
+        """
         if self.FULL_CHECK:  # 9ms on Pyboard
             try:
                 next(c for c in line if ord(c) < 10 or ord(c) > 126)
                 return  # Bad character received
             except StopIteration:
                 pass  # All good
+            
             await asyncio.sleep(0)
             if len(line) > self._SENTENCE_LIMIT or not '*' in line:
                 return  # Too long or malformed
+        """
 
         a = line.split(',')
+        await asyncio.sleep(0)
+
         segs = a[:-1] + a[-1].split('*')
         await asyncio.sleep(0)
 
+        """
         if self.FULL_CHECK:  # 6ms on Pyboard
             if not self._crc_check(line, segs[-1]):
                 self.crc_fails += 1  # Update statistics
                 return
             await asyncio.sleep(0)
+        """
 
         self.clean_sentences += 1  # Sentence is good but unparsed.
         segs[0] = segs[0][1:]  # discard $
         segs = segs[:-1]  # and checksum
+        
+        await asyncio.sleep(0)
+        
+        # Start of PARSING
         if segs[0] in self.supported_sentences:
             try:
                 s_type = self.supported_sentences[segs[0]](segs)  # Parse
             except ValueError:
                 s_type = False
+            
             await asyncio.sleep(0)
+            
             if isinstance(s_type, int) and (s_type & self.cb_mask):
                 # Successfully parsed, data was valid and mask matches sentence type
                 self._fix_cb(self, s_type, *self._fix_cb_args)  # Run the callback
@@ -239,6 +277,16 @@ class AS_GPS(object):
 
     def reparse(self, segs):  # Re-parse supported sentences
         return True
+
+
+
+
+
+
+
+
+
+
 
     ########################################
     # Fix and Time Functions
@@ -291,6 +339,18 @@ class AS_GPS(object):
         t = int(self._mktime((y, m, d, hrs, mins, int(secs), wday - 1, 0, 0)))
         self.epoch_time = t  # This is the fundamental datetime reference.
         self._dtset(wday)  # Subclass may override
+
+
+
+
+
+
+
+
+
+
+
+
 
     ########################################
     # Sentence Parsers
@@ -418,65 +478,25 @@ class AS_GPS(object):
         # the no. of the last SV sentence parsed, and data on each satellite
         # present in the sentence.
         self._valid &= ~GSV
-        num_sv_sentences = int(gps_segments[1])
-        current_sv_sentence = int(gps_segments[2])
-        sats_in_view = int(gps_segments[3])
 
-        # Create a blank dict to store all the satellite data from this sentence in:
-        # satellite PRN is key, tuple containing telemetry is value
-        satellite_dict = dict()
-
-        # Calculate  Number of Satelites to pull data for and thus how many segment positions to read
-        if num_sv_sentences == current_sv_sentence:
-            sat_segment_limit = ((sats_in_view % 4) * 4) + 4  # Last sentence may have 1-4 satellites
-        else:
-            sat_segment_limit = 20  # Non-last sentences have 4 satellites and thus read up to position 20
-
-        # Try to recover data for up to 4 satellites in sentence
-        for sats in range(4, sat_segment_limit, 4):
-
-            # If a PRN is present, grab satellite data
-            if gps_segments[sats]:
-                try:
-                    sat_id = int(gps_segments[sats])
-                except IndexError:
-                    raise ValueError  # Abandon
-
-                try:  # elevation can be null (no value) when not tracking
-                    elevation = int(gps_segments[sats+1])
-                except (ValueError,IndexError):
-                    elevation = None
-
-                try:  # azimuth can be null (no value) when not tracking
-                    azimuth = int(gps_segments[sats+2])
-                except (ValueError,IndexError):
-                    azimuth = None
-
-                try:  # SNR can be null (no value) when not tracking
-                    snr = int(gps_segments[sats+3])
-                except (ValueError,IndexError):
-                    snr = None
-            # If no PRN is found, then the sentence has no more satellites to read
-            else:
-                break
-
-            # Add Satellite Data to Sentence Dict
-            satellite_dict[sat_id] = (elevation, azimuth, snr)
-
-        # Update Object Data
-        self._total_sv_sentences = num_sv_sentences
-        self._last_sv_sentence = current_sv_sentence
-        self.satellites_in_view = sats_in_view
-
-        # For a new set of sentences, we either clear out the existing sat data or
-        # update it as additional SV sentences are parsed
-        if current_sv_sentence == 1:
-            self._satellite_data = satellite_dict
-        else:
-            self._satellite_data.update(satellite_dict)
+        ##
+        # DELETED CODE :)
+        ##
+       
         # Flag that a msg has been received. Does not mean a full set of data is ready.
         self._valid |= GSV
         return GSV
+
+
+
+
+
+
+
+
+
+
+
 
     #########################################
     # User Interface Methods
@@ -485,6 +505,7 @@ class AS_GPS(object):
     # Data Validity. On startup data may be invalid. During an outage it will be absent.
     async def data_received(self, position=False, course=False, date=False,
                             altitude=False):
+        
         self._valid = 0  # Assume no messages at start
         result = False
         while not result:
@@ -504,6 +525,7 @@ class AS_GPS(object):
                     result = False
             if altitude and not self._valid & ALTITUDE:
                 result = False
+
 
     def latitude(self, coord_format=DD):
         # Format Latitude Data Correctly
@@ -531,13 +553,15 @@ class AS_GPS(object):
             return self._longitude
         raise ValueError('Unknown longitude format.')
 
-    def speed(self, units=KNOT):
+    def speed(self, units=MS):
         if units == KNOT:
             return self._speed
         if units == KPH:
             return self._speed * 1.852
         if units == MPH:
             return self._speed * 1.151
+        if units == MS:
+            return self._speed * 0.514444
         raise ValueError('Unknown speed units.')
 
     async def get_satellite_data(self):
