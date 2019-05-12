@@ -13,7 +13,7 @@ from rcio import rc_read_write
 
 # enable / disable features - telem, sensor, stability, rc
 f = (1,1,1,1)
-GPS = False
+GPS = True
 
 
 # define global variables
@@ -27,6 +27,7 @@ l = 0
 
 async def main_loop(link):
     # executes while link to ground station is active - breaks upon lost connection
+    global roll, pitch, acc, rc_read, rc_write, raw_pressure, loop_time, l
     loop_time = Timer.Chrono()
     
     while True:
@@ -52,6 +53,7 @@ async def main_loop(link):
 
 
 async def telemetry(link):
+    global roll, pitch, acc, rc_read, rc_write, raw_pressure, loop_time, l
     while True:
         link.send(5, [raw_pressure])
         await asyncio.sleep(0)
