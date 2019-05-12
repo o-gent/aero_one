@@ -12,8 +12,7 @@ from rcio import rc_read_write
 # enable / disable features - telem, sensor, stability, rc
 f = (1,1,1,1)
 
-import uasyncio
-uasyncio.get_event_loop()
+
 
 def main_loop(link):
     # executes while link to ground station is active - breaks upon lost connection
