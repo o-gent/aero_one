@@ -29,7 +29,7 @@ print("""
 output = 0
 while output != "Connection request was completed successfully.":
     try: output = subprocess.check_output(["netsh", "wlan", "connect" , "name=kevin"]).decode().strip()
-    except Exception as e: output = e.output.decode(); print("Make sure Kevin is on and/or restart pycom", end ='\n')
+    except Exception as e: print("Make sure Kevin is on and/or restart pycom", end ='\n')
     finished = output.splitlines()
     for line in finished: print(line, end = '\n')
     time.sleep(4)
@@ -75,6 +75,7 @@ start = time.time()
 signal = 0
 thresh = 4
 
+
 try:
     # loop while connected
     while sock:
@@ -104,7 +105,14 @@ try:
         # pressure 
         try: print("loop time: " + str(sock.data[0]) + "                      ")
         except: pass
-        
+
+        try: print("speed: " + str(sock.gps.speed) + "                      ")
+        except: pass
+        try: print("altitude: " + str(sock.gps.altitude) + "                      ")
+        except: pass
+        try: print("heading: " + str(sock.gps.course) + "                      ")
+        except: pass
+
         thetime = time.time()
 
         if thetime - start > thresh:
@@ -120,7 +128,7 @@ try:
         print(signal, flush = True)
 
         # clear terminal
-        print(2000 * '\b', flush= True)
+        print(3000 * '\b', flush= True)
 
 except Exception as e:
     print(e)
