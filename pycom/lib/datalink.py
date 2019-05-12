@@ -32,11 +32,8 @@ class Server():
             sock.close()
         
     def send(self, id_, message):
-        try:
-            self.string = str(id_) + "_" + str(message) + "@"
-            self.sock.send(self.string.encode())
-        except Exception as e:
-            print(e)
+        self.string = str(id_) + "_" + str(message) + "@"
+        self.sock.send(self.string.encode())
         
         #string = str(id_) + "_" + str(message) + "@"
         #self.sock.send(string.encode())

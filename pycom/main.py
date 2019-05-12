@@ -13,7 +13,7 @@ from rcio import rc_read_write
 
 # enable / disable features - telem, sensor, stability, rc
 f = (1,1,1,1)
-GPS = True
+GPS = False
 
 
 # define global variables
@@ -54,24 +54,40 @@ async def main_loop(link):
 
 async def telemetry(link):
     global roll, pitch, acc, rc_read, rc_write, raw_pressure, loop_time, l
-    while True:
-        link.send(5, [raw_pressure])
-        await asyncio.sleep(0)
-        
-        link.send(4, rc_write)
-        await asyncio.sleep(0)
-        
-        link.send(3, rc_read)
-        await asyncio.sleep(0)
-        
-        link.send(2, [int(roll), int(pitch)])
-        await asyncio.sleep(0)
-        
-        link.send(1, [acc[0], acc[1], acc[2]])
-        await asyncio.sleep(0)
 
-        link.send(0, [l])
-        await asyncio.sleep(0)
+    try:
+        while True:
+            link.send(5, [raw_pressure])
+            await asyncio.sleep(0)
+            
+            link.send(4, rc_write)
+            await asyncio.sleep(0)
+            
+            link.send(3, rc_read)
+            await asyncio.sleep(0)
+            
+            link.send(2, [int(roll), int(pitch)])
+            await asyncio.sleep(0)
+            
+            link.send(1, [acc[0], acc[1], acc[2]])
+            await asyncio.sleep(0)
+
+            link.send(0, [l])
+            await asyncio.sleep(0)
+    except:
+        print("FAILED")
+        machine.reset()
+
+
+async def gps_basic(link):
+    # runs each second
+    while True:
+        try:
+            read = gps_uart.read()
+            link.sock.send(read)
+        except Exception as e:
+            print("gps read failed: {}".format(e))
+        await asyncio.sleep(1)
 
 
 async def gps_data():
@@ -94,9 +110,14 @@ def backup_loop():
 pycom.heartbeat(False)
 pycom.rgbled(0xf200ea)
 
+
+try:
+    gps_uart = UART(2, baudrate = 9600, pins = ('P9', 'P11'))
+except:
+    print("no gps")
+
 if GPS:
     #set up GPS
-    gps_uart = UART(2, baudrate = 9600, pins = ('P9', 'P11'))
     sreader = asyncio.StreamReader(gps_uart)  # Create a StreamReader
     gps = as_GPS.AS_GPS(sreader)  # Instantiate GPS
 
@@ -112,6 +133,7 @@ if f[3]:
 if f[0]:
     # set up link to ground station
     with datalink_setup() as link:
+
         pycom.heartbeat(False)
         pycom.rgbled(0x007f00) # green
 
@@ -121,6 +143,7 @@ if f[0]:
         loop.create_task(telemetry(link))
         if GPS:
             loop.create_task(gps_data())
+        loop.create_task(gps_basic(link))
         loop.run_forever()
 
 

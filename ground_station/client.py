@@ -1,19 +1,19 @@
 import socket
 import select
-
+from microgps import MicropyGPS
 
 class Client():
     def __init__(self, ip):
         self.data = {}
+        self.gps = MicropyGPS()
 
         try:
             #'192.168.4.1'
             sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM ) #socket.SOCK_DGRAM
             sock.connect((ip,5000))
             sock.send(b'initialise')
-            sock.setblocking(0)
+            #sock.setblocking(0)
             self.sock = sock
-            self.ready = select.select([self.sock], [],[],0.5)
         
         except Exception as e:
             self.sock = None
@@ -21,27 +21,33 @@ class Client():
     
     def recieve(self):
         try:
-            if self.ready[0]:
-                raw = self.sock.recv(1024)
-                raw = raw.decode()
+            raw = self.sock.recv(1024)
+            raw = raw.decode()
+            
+            raw = raw.splitlines()
+            
+            for line in raw:
+                if line.startswith('$'):
+                    for x in line:
+                        self.gps.update(x)
 
-                raw = raw.strip().split('@')
-                raw.pop()
+                else:
+                    line = line.strip().split('@')
+                    line.pop()
 
-                for data in raw:
-                    id_ = int(data[0])
-                    message = data[3:-1]
-                    message = message.split(',')
-                    l = []
-                    for i in message:
-                        l.append(float(i))
-                    message = l
+                    for data in line:
+                        id_ = int(data[0])
+                        message = data[3:-1]
+                        message = message.split(',')
+                        l = []
+                        for i in message:
+                            l.append(float(i))
+                        message = l
 
-                    self.data[id_] = message
-            else:
-                print("socket wasn't ready")
-        
+                        self.data[id_] = message
+
         except Exception as e:
+            #print(e)
             pass
 
 
@@ -50,3 +56,4 @@ if __name__ == "__main__":
     while sock:
         sock.recieve()
         print(sock.data)
+        #print(sock.gps_data)
