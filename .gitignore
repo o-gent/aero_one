@@ -105,3 +105,4 @@ venv.bak/
 ground_station/~$main.xlsx
 .vscode/ipch/43698b5c5a5c5070/mmap_address.bin
 ground_station/.vscode/settings.json
+ground_station/.vscode/launch.json

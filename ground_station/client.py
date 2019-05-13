@@ -9,6 +9,7 @@ class Client():
         self.data = {}
         self.gps = MicropyGPS()
         self.gps_data_recieved = False
+        self.signal = 0
 
         try:
             #'192.168.4.1'
