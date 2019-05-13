@@ -7,6 +7,10 @@ import math
 import uasyncio as asyncio
 import as_GPS
 
+from stability.Utility import limitByRate, mapInput, limit
+from stability.filters import LowPassFilter
+from stability.filters import WashoutFilter
+
 from sensor_read import roll_pitch, pressure
 from datalink import datalink_setup
 from rcio import rc_read_write
@@ -22,7 +26,25 @@ rc_read = [0,0,0,0,0,0]
 rc_write = [0,0,0,0,0,0]
 raw_pressure = 0
 loop_time = 0
-l = 0
+l = 20
+dt = 0.02
+
+lpf_pitch_rate = LowPassFilter(1, 0.1)
+lpf_pitch = LowPassFilter(1, 0.1)
+
+lpf_roll_rate = LowPassFilter(1, 0.1)
+lpf_roll = LowPassFilter(1, 0.1)
+
+#LeftAileron = Actuator(40, 4, 40)  # channel 1
+Aileron = Actuator(40, 4, 40)  # channel 0
+Elevator = Actuator(50, 3.5, 40)  # channel 1
+Rudder = Actuator(50, 3.5, 40)  # channel 3
+
+PitchRate = Differentiator(1)
+RollRate = Differentiator(1)
+
+PitchDamper = WashoutFilter(2)
+RollDamper = WashoutFilter(1)
 
 
 async def main_loop(link):
@@ -40,7 +62,35 @@ async def main_loop(link):
 
         if f[2]:
             # STABILITY CALCULATIONS
-            pass
+            dt = l / 1000
+            """
+            try:
+                servo_rate = mapInput(rc_read[4], 0, 1000, 90, 300)
+                test_servo = limitByRate((rc_read[0] + (acc[2] - 1)*500)
+
+            except Exception as e:
+                print(e)
+            """
+            try:
+                pitch_rate = lpf_pitch_rate(PitchRate.step(lpf_pitch.step(pitch, dt), dt), dt) / (math.cos(roll / 57.2958))
+                roll_rate = lpf_roll_rate(RollRate.step(lpf_roll.step(roll, dt), dt), dt)
+                # pitch = lpf_pitch.step(pitch,dt)
+                # dt = loop_time.read()
+                rc_write[1] = Elevator.step(rc_read[1], 0.3 * PitchDamper.step(pitch_rate, dt), dt)
+                #rc_write[1] = LeftAileron.step(rc_read[1], 0.1 * RollDamper.step(roll_rate, dt), dt)
+                rc_write[0] = Aileron.step(rc_read[0], 0.3 * PitchDamper.step(roll_rate, dt), dt)
+                rc_write[3] = Rudder.step(rc_read[3], 0, dt)
+
+                # servo_rate = mapInput(rc_read[4], 0, 1000, 90, 300)
+                # pitch_rate = limit((pitch - pitch_prev)/(dt), 30, -30)  #lpf_pitch_rate.step(limit((pitch - pitch_prev)/(l/1000), 300, -300), l/1000)
+                # pitch_rate = lpf_pitch_rate.step(pitch_rate, dt)
+                # test_servo = limitByRate((rc_read[0] + limit(pitch_rate*30, 300, -300)), test_servo, (1000/180) * servo_rate, dt)
+                # rc_write[0] = limit(test_servo,1000, 0)
+                # pitch_prev = pitch
+
+
+            except Exception as e:
+                print(e)
 
         if f[3]:
             rc_read = rc_read_write(conn, rc_write)
