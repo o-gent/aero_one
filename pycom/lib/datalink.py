@@ -32,12 +32,8 @@ class Server():
             sock.close()
         
     def send(self, id_, message):
-        if id_ == 0:
-            self.string += str(id_) + "_" + str(message) + "@"
-            self.sock.send(self.string.encode())
-            self.string = " "
-        else:
-            self.string += str(id_) + "_" + str(message) + "@"
+        self.string = str(id_) + "_" + str(message) + "@"
+        self.sock.send(self.string.encode())
         
         #string = str(id_) + "_" + str(message) + "@"
         #self.sock.send(string.encode())
