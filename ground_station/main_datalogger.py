@@ -88,11 +88,11 @@ with open('kevin_{}.csv'.format(str(datetime.now().time()).replace('.', '_').rep
             # fetch new data
             try:
                 sock.recieve()
-                """
+                
+                
                 r.update()
                 if sock.gps_data_recieved:
                     r.update_gps()
-                """
                 
                 # ACC raw 
                 try: print("ACC raw: " + str(sock.data[1]) + "                      " )
