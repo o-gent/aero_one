@@ -38,7 +38,7 @@ while output != "Connection request was completed successfully.":
 
 
 # get signal of closest WiFi network
-#print(subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"]).decode().splitlines()[9])
+print(subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"]).decode().splitlines()[9])
 
 _ = os.system('cls')
 
