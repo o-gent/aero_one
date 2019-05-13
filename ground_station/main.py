@@ -5,6 +5,8 @@ import threading
 import time
 import numpy as np
 from multiprocessing.pool import ThreadPool
+from datetime import datetime
+from record import Record
 pool = ThreadPool(processes=2)
 
 _ = os.system('cls')
@@ -70,67 +72,69 @@ _ = os.system('cls')
 def signal_strength():
     return subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"]).decode().splitlines()[9]
 
-
 start = time.time()
 signal = 0
 thresh = 4
 
 
-try:
-    # loop while connected
-    while sock:
-        # fetch new data
-        sock.recieve()
+#with open("kevin_{}.csv".format(str(datetime.now()).replace(" ", "")), mode ='w+') as n, open("gps_{}.csv".format(str(datetime.now()).replace(" ", "")), mode = 'w+') as g:
+    #r = Record(sock, n, g)
 
-        # ACC raw 
-        try: print("ACC raw: " + str(sock.data[1]) + "                      " )
-        except: pass
-        
-        # roll/pitch   
-        try: print("roll/pitch: " + str(sock.data[2]) + "                      ")
-        except: pass
+# loop while connected
+while sock:
+    # fetch new data
 
-        # Radio channel
-        try: print("Radio channel: " + str(sock.data[3]) + "                      ")
-        except: pass
+    sock.recieve()
+    """
+    r.update()
+    if sock.gps_data_recieved:
+        r.update_gps()
+    """
+    
+    # ACC raw 
+    try: print("ACC raw: " + str(sock.data[1]) + "                      " )
+    except: pass
+    
+    # roll/pitch   
+    try: print("roll/pitch: " + str(sock.data[2]) + "                      ")
+    except: pass
 
-        # channel target
-        try: print("channel target: " + str(sock.data[4]) + "                      ")
-        except: pass
-        
-        # pressure 
-        try: print("pressure data: " + str(sock.data[5]) + "                      ")
-        except: pass
-        
-        # pressure 
-        try: print("loop time: " + str(sock.data[0]) + "                      ")
-        except: pass
+    # Radio channel
+    try: print("Radio channel: " + str(sock.data[3]) + "                      ")
+    except: pass
 
-        try: print("speed: " + str(sock.gps.speed) + "                      ")
-        except: pass
-        try: print("altitude: " + str(sock.gps.altitude) + "                      ")
-        except: pass
-        try: print("heading: " + str(sock.gps.course) + "                      ")
-        except: pass
+    # channel target
+    try: print("channel target: " + str(sock.data[4]) + "                      ")
+    except: pass
+    
+    # pressure 
+    try: print("pressure data: " + str(sock.data[5]) + "                      ")
+    except: pass
+    
+    # pressure 
+    try: print("loop time: " + str(sock.data[0]) + "                      ")
+    except: pass
 
-        thetime = time.time()
+    try: print("speed: " + str(sock.gps.speed) + "                      ")
+    except: pass
+    try: print("altitude: " + str(sock.gps.altitude) + "                      ")
+    except: pass
+    try: print("heading: " + str(sock.gps.course) + "                      ")
+    except: pass
 
-        """
-        if thetime - start > thresh:
-            # start function in other thread
-            async_result = pool.apply_async(signal_strength)
-            thresh = 11
-        
-        if thetime - start > 5:
-            signal = async_result.get()
-            start = time.time()
-            thresh = 4
-        """
-        print(signal, flush = True)
+    thetime = time.time()
 
-        # clear terminal
-        print(3000 * '\b', flush= True)
+    if thetime - start > thresh:
+        # start function in other thread
+        async_result = pool.apply_async(signal_strength)
+        thresh = 11
+    
+    if thetime - start > 5:
+        signal = async_result.get()
+        start = time.time()
+        thresh = 4
+    
+    print(signal, flush = True)
 
-except Exception as e:
-    print(e)
-    sock.sock.close()
+    # clear terminal
+    print(3000 * '\b', flush= True)

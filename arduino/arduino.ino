@@ -40,7 +40,7 @@ void setup() {
   // associate channels with pins
   ch1.attach(3);
   ch2.attach(5);
-  ch3.attach(6);
+  ch3.attach(6, 1000, 2000);
   ch4.attach(9);
   ch5.attach(10);
 
@@ -55,8 +55,12 @@ void loop() {
   read_rc();
   
   if (reciever[5] > 500) {
-    // enable serial inputs to be written as outputs
+    // PYCOM CONTROL
     digitalWrite(LED_BUILTIN, HIGH); // sets arduino LED to on
+
+    //throttle passthrough
+    target[2] = reciever[2];
+    
     mix_output(target);
   }
   
@@ -78,12 +82,20 @@ void mix_output(int input[6]){
   * MIXES - CHECK ORDER
   */
 
-  // AILERON sensitivity
-  //mix[0] = float((mix[0] - 500)) * mix[4]/1000;
-  //mix[0] = mix[0] + 500;
   
   // FINAL - AILERONS - ch5 is inverse of ch1
-  mix[4] = abs(mix[0] - 1000);
+  // overwrites previous channel 5 value
+  // mix[4] = abs(mix[0] - 1000);
+
+  mix[4] = mix[0];
+  // adjust for bad alignment
+  mix[4] += 100;
+  
+    // flaps
+  if (reciever[4] > 400){
+    mix[4] -= 200;
+    mix[0] += 200;
+  }
    
   ch1.write(map(mix[0], 0, 1000, 0, 180));
   ch2.write(map(mix[1], 0, 1000, 0, 180));
