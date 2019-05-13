@@ -14,6 +14,8 @@ from stability.filters import WashoutFilter
 from sensor_read import roll_pitch, pressure
 from datalink import datalink_setup
 from rcio import rc_read_write
+from stability.actuator import Actuator
+from stability.filters import Differentiator
 
 # enable / disable features - telem, sensor, stability, rc
 f = (1,1,1,1)
@@ -72,8 +74,8 @@ async def main_loop(link):
                 print(e)
             """
             try:
-                pitch_rate = lpf_pitch_rate(PitchRate.step(lpf_pitch.step(pitch, dt), dt), dt) / (math.cos(roll / 57.2958))
-                roll_rate = lpf_roll_rate(RollRate.step(lpf_roll.step(roll, dt), dt), dt)
+                pitch_rate = lpf_pitch_rate.step(PitchRate.step(lpf_pitch.step(pitch, dt), dt), dt) / (math.cos(roll / 57.2958))
+                roll_rate = lpf_roll_rate.step(RollRate.step(lpf_roll.step(roll, dt), dt), dt)
                 # pitch = lpf_pitch.step(pitch,dt)
                 # dt = loop_time.read()
                 rc_write[1] = Elevator.step(rc_read[1], 0.3 * PitchDamper.step(pitch_rate, dt), dt)

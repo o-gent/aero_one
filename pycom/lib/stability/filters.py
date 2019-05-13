@@ -11,7 +11,7 @@ class Differentiator:
         self.output = 0
 
     def step(self, input_, dt):
-        self.output = amp*((input_ - self.in_prev) / dt)
+        self.output = self.amp*((input_ - self.in_prev) / dt)
         self.in_prev = input_
         return self.output
 
@@ -24,7 +24,7 @@ class Integrator:
         self.output = a
 
     def step(self, input_, dt):
-        self.output = amp*(self.output + input_*dt)
+        self.output = self.amp*(self.output + input_*dt)
         return self.output
 
 class LowPassFilter:

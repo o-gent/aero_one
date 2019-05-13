@@ -1,5 +1,5 @@
-from Utility import limitByRate, mapInput, limit
-from filters import LowPassFilter
+from stability.Utility import limitByRate, mapInput, limit
+from stability.filters import LowPassFilter
 
 class Actuator:
     # class for the control surface actuator
