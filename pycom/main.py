@@ -38,9 +38,9 @@ lpf_roll_rate = LowPassFilter(1, 0.1)
 lpf_roll = LowPassFilter(1, 0.1)
 
 #LeftAileron = Actuator(40, 4, 40)  # channel 1
-Aileron = Actuator(40, 4, 90)  # channel 0
-Elevator = Actuator(50, 3.5, 90)  # channel 1
-Rudder = Actuator(50, 3.5, 90)  # channel 3
+Aileron = Actuator(40, 4, 40)  # channel 0
+Elevator = Actuator(50, 3.5, 40)  # channel 1
+Rudder = Actuator(50, 3.5, 40)  # channel 3
 
 PitchRate = Differentiator(1)
 RollRate = Differentiator(1)
@@ -74,24 +74,13 @@ async def main_loop(link):
                 print(e)
             """
             try:
-
-                pitch_rate = lpf_pitch_rate.step(PitchRate.step(lpf_pitch.step(pitch, dt), dt), dt) / limit(math.cos(roll / 57.2958), 1, 0.1)
+                pitch_rate = lpf_pitch_rate.step(PitchRate.step(lpf_pitch.step(pitch, dt), dt), dt) / (math.cos(roll / 57.2958))
                 roll_rate = lpf_roll_rate.step(RollRate.step(lpf_roll.step(roll, dt), dt), dt)
-
-                if abs(pitch) > 60 or abs(roll) > 60:
-                    sas_pitch = 0
-                    sas_roll = 0
-                else:
-                    sas_pitch = 0.3 * PitchDamper.step(pitch_rate, dt)
-                    sas_roll = 0.3 * PitchDamper.step(roll_rate, dt)
                 # pitch = lpf_pitch.step(pitch,dt)
                 # dt = loop_time.read()
-
-
-
-                rc_write[1] = Elevator.step(rc_read[1], sas_pitch, dt)
+                rc_write[1] = Elevator.step(rc_read[1], 0.3 * PitchDamper.step(pitch_rate, dt), dt)
                 #rc_write[1] = LeftAileron.step(rc_read[1], 0.1 * RollDamper.step(roll_rate, dt), dt)
-                rc_write[0] = Aileron.step(rc_read[0], sas_roll, dt)
+                rc_write[0] = Aileron.step(rc_read[0], 0.3 * PitchDamper.step(roll_rate, dt), dt)
                 rc_write[3] = Rudder.step(rc_read[3], 0, dt)
 
                 # servo_rate = mapInput(rc_read[4], 0, 1000, 90, 300)
