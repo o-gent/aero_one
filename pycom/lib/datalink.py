@@ -1,4 +1,5 @@
 import socket
+import time
 
 class datalink_setup():
     def __enter__(self):
@@ -24,7 +25,7 @@ class Server():
         
             # initialised messaged
             print(addr, client.recv(1024))
-            
+            self.file = 0
             self.sock = client #socket connection to client
         
         except Exception as e:
@@ -34,6 +35,7 @@ class Server():
     def send(self, id_, message):
         self.string = str(id_) + "_" + str(message) + "@"
         self.sock.send(self.string.encode())
+        self.file.write(str(time.time())+ self.string + '\n')
         
         #string = str(id_) + "_" + str(message) + "@"
         #self.sock.send(string.encode())
