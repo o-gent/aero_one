@@ -38,9 +38,9 @@ lpf_roll_rate = LowPassFilter(1, 0.1)
 lpf_roll = LowPassFilter(1, 0.1)
 
 #LeftAileron = Actuator(40, 4, 40)  # channel 1
-Aileron = Actuator(40, 4, 40)  # channel 0
-Elevator = Actuator(50, 3.5, 40)  # channel 1
-Rudder = Actuator(50, 3.5, 40)  # channel 3
+Aileron = Actuator(40, 4, 90)  # channel 0
+Elevator = Actuator(50, 3.5, 90)  # channel 1
+Rudder = Actuator(50, 3.5, 90)  # channel 3
 
 PitchRate = Differentiator(1)
 RollRate = Differentiator(1)
