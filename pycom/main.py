@@ -17,9 +17,34 @@ from rcio import rc_read_write
 from stability.actuator import Actuator
 from stability.filters import Differentiator
 
+
 # enable / disable features - telem, sensor, stability, rc
 f = (1,1,1,1)
 GPS = False
+sd_card = True
+
+
+# setup datalogging to SD card..
+from machine import SD
+import os
+
+if sd_card:
+    sd = SD()
+    os.mount(sd, '/sd')
+
+    # check the content
+    print(os.listdir('/sd'))
+    
+    file_number = 0
+    try:
+        # check for files that exist until a free index is found
+        for _ in range(100):
+            if os.stat('/sd/gps{}.txt'.format(i)):
+                file_number += 1
+    except:
+        # now open free file
+        gps_file = open('/sd/gps{}.txt'.format(file_number), 'w+')
+        normal_file = open('/sd/kevin{}.txt'.format(file_number), 'w+')
 
 
 # define global variables
@@ -31,6 +56,8 @@ loop_time = 0
 l = 20
 dt = 0.02
 
+
+# stability classes
 lpf_pitch_rate = LowPassFilter(1, 0.1)
 lpf_pitch = LowPassFilter(1, 0.1)
 
@@ -50,7 +77,6 @@ RollDamper = WashoutFilter(1)
 
 
 async def main_loop(link):
-    # executes while link to ground station is active - breaks upon lost connection
     global roll, pitch, acc, rc_read, rc_write, raw_pressure, loop_time, l
     loop_time = Timer.Chrono()
     
@@ -117,9 +143,11 @@ async def main_loop(link):
 
 async def telemetry(link):
     global roll, pitch, acc, rc_read, rc_write, raw_pressure, loop_time, l
+    global normal_file
 
     try:
         while True:
+            
             link.send(5, [raw_pressure])
             await asyncio.sleep(0)
             
@@ -138,16 +166,27 @@ async def telemetry(link):
             link.send(0, [l])
             await asyncio.sleep(0)
     except:
-        print("FAILED")
-        machine.reset()
+        #print("FAILED")
+        #machine.reset()
+        # lost connection - just deal with it and continue writing sd data
+        pass
 
 
 async def gps_basic(link):
+    global gps_file
+    
     # runs each second
     while True:
         try:
             read = gps_uart.read()
+            
+            # send raw data over telemetry
             link.sock.send(read)
+            
+            # save data to file
+            gps_file.write(read)
+            
+            
         except Exception as e:
             print("gps read failed: {}".format(e))
         await asyncio.sleep(1)
@@ -196,6 +235,7 @@ if f[3]:
 if f[0]:
     # set up link to ground station
     with datalink_setup() as link:
+        link.file = normal_file
 
         pycom.heartbeat(False)
         pycom.rgbled(0x007f00) # green
