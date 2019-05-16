@@ -32,6 +32,7 @@ class Client():
             
             for line in raw:
                 if line.startswith('$'):
+                    # update gps in next cycle
                     self.gps_data_recieved = True
                     for x in line:
                         self.gps.update(x)
@@ -50,8 +51,9 @@ class Client():
                         message = l
 
                         self.data[id_] = message
-            
-            self.gps_data_recieved = False
+                        
+                        # don't update GPS file next cycle
+                        self.gps_data_recieved = False
 
         except OSError as oserror:
             #print("critical exception - closing {}".format(oserror))
