@@ -1,4 +1,5 @@
-# aero_one
+![alt_text](/aero_one.png)
+
 UAV control for 2nd year project.
 
 
