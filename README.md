@@ -9,3 +9,6 @@ ESP32 - Specifically a Pycom WiPy 3.0 with a pysense shield runs micropython and
 The Main purpose of the Pycom is to run control code such as attitude control for the drone. 
 
 Running on release 1.18.x, performance drops by 2x on release 1.20
+
+
+![alt text](/control-4.png)
