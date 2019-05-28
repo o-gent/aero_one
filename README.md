@@ -12,4 +12,4 @@ The Main purpose of the Pycom is to run control code such as attitude control fo
 Running on release 1.18.x, performance drops by 2x on release 1.20
 
 
-![alt text](/docs/img/control-4.png)
+![alt text](/docs/img/control.png)
