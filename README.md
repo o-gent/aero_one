@@ -2,6 +2,11 @@
 
 UAV control for 2nd year project.
 
+final project video: [Aero One Project video](https://www.youtube.com/watch?v=YYVI17hck-c&t=1s)
+
+![alt text](/docs/img/plane.jpg)
+
+
 
 Consists of an Arduino to read RC signal and control servos as well as serving as a failsafe if the ESP32 fails. 
 
